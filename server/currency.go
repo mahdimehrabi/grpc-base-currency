@@ -2,8 +2,8 @@ package server
 
 import (
 	"context"
-	"currency-implementation/proto/currency"
 	"fmt"
+	"github.com/mahdimehrabi/grpc-base-currency/proto/currency"
 )
 
 type CurrencyServer struct {

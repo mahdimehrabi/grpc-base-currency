@@ -1,9 +1,9 @@
 package main
 
 import (
-	"currency-implementation/proto/currency"
-	"currency-implementation/server"
 	"fmt"
+	"github.com/mahdimehrabi/grpc-base-currency/proto/currency"
+	"github.com/mahdimehrabi/grpc-base-currency/server"
 	"google.golang.org/grpc"
 	"google.golang.org/grpc/reflection"
 	"net"
