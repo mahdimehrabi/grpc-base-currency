@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/mahdimehrabi/grpc-base-currency/data"
 	"github.com/mahdimehrabi/grpc-base-currency/proto/currency"
 	"github.com/mahdimehrabi/grpc-base-currency/server"
 	"google.golang.org/grpc"
@@ -11,8 +12,15 @@ import (
 )
 
 func main() {
+
+	rates, err := data.NewRates()
+	if err != nil {
+		fmt.Println("Unable to generate rates", "error", err)
+		os.Exit(1)
+	}
+
 	gs := grpc.NewServer()
-	cs := server.NewCurrencyServer()
+	cs := server.NewCurrencyServer(rates)
 
 	currency.RegisterCurrencyServer(gs, cs)
 
