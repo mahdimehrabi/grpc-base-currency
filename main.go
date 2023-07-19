@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"github.com/hashicorp/go-hclog"
 	"github.com/mahdimehrabi/grpc-base-currency/data"
 	"github.com/mahdimehrabi/grpc-base-currency/proto/currency"
 	"github.com/mahdimehrabi/grpc-base-currency/server"
@@ -13,7 +14,7 @@ import (
 
 func main() {
 
-	rates, err := data.NewRates()
+	rates, err := data.NewRates(hclog.New(hclog.DefaultOptions))
 	if err != nil {
 		fmt.Println("Unable to generate rates", "error", err)
 		os.Exit(1)

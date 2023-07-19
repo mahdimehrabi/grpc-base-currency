@@ -10,11 +10,37 @@ import (
 )
 
 type CurrencyServer struct {
-	rates *data.ExchangeRates
+	rates         *data.ExchangeRates
+	subscriptions map[currency.Currency_SubscribeRatesServer][]*currency.RateRequest
 }
 
 func NewCurrencyServer(r *data.ExchangeRates) *CurrencyServer {
-	return &CurrencyServer{rates: r}
+	c := &CurrencyServer{rates: r, subscriptions: make(map[currency.Currency_SubscribeRatesServer][]*currency.RateRequest, 0)}
+	go c.handleUpdates()
+	return c
+}
+
+func (c *CurrencyServer) handleUpdates() {
+	ru := c.rates.MonitorRates(5 * time.Second)
+	for range ru {
+		fmt.Println("GO updated rates")
+
+		//loop over subscribed clients
+		for k, v := range c.subscriptions {
+
+			//loop over subscribed rates
+			for _, rr := range v {
+				r, err := c.rates.GetRate(rr.GetBase().String(), rr.GetDestination().String())
+				if err != nil {
+					fmt.Println("Unable to get updated rate", "base", rr.GetBase().String(), "Destination", rr.GetDestination().String())
+				}
+				err = k.Send(&currency.RateResponse{Rate: r, Base: rr.GetBase(), Destination: rr.GetDestination()})
+				if err != nil {
+					fmt.Println("Unable to send updated rate", "base", rr.GetBase().String(), "Destination", rr.GetDestination().String())
+				}
+			}
+		}
+	}
 }
 
 func (s CurrencyServer) GetRate(ctx context.Context, rr *currency.RateRequest) (*currency.RateResponse, error) {
@@ -26,7 +52,9 @@ func (s CurrencyServer) GetRate(ctx context.Context, rr *currency.RateRequest) (
 	}
 
 	return &currency.RateResponse{
-		Rate: rate,
+		Rate:        rate,
+		Base:        rr.GetBase(),
+		Destination: rr.GetDestination(),
 	}, nil
 }
 
@@ -43,6 +71,12 @@ func (s CurrencyServer) SubscribeRates(src currency.Currency_SubscribeRatesServe
 				break
 			}
 			fmt.Println("Handle client request", "request.base", rr.Base, "request.destionation", rr.Destination)
+			rrs, ok := s.subscriptions[src]
+			if !ok {
+				rrs = []*currency.RateRequest{}
+			}
+			rrs = append(rrs, rr)
+			s.subscriptions[src] = rrs
 		}
 	}()
 	for {
