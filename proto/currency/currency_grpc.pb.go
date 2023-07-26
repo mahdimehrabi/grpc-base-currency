@@ -2,7 +2,7 @@
 // versions:
 // - protoc-gen-go-grpc v1.2.0
 // - protoc             v3.12.4
-// source: proto/currency.proto
+// source: currency.proto
 
 package currency
 
@@ -54,7 +54,7 @@ func (c *currencyClient) SubscribeRates(ctx context.Context, opts ...grpc.CallOp
 
 type Currency_SubscribeRatesClient interface {
 	Send(*RateRequest) error
-	Recv() (*RateResponse, error)
+	Recv() (*StreamingRateResponse, error)
 	grpc.ClientStream
 }
 
@@ -66,8 +66,8 @@ func (x *currencySubscribeRatesClient) Send(m *RateRequest) error {
 	return x.ClientStream.SendMsg(m)
 }
 
-func (x *currencySubscribeRatesClient) Recv() (*RateResponse, error) {
-	m := new(RateResponse)
+func (x *currencySubscribeRatesClient) Recv() (*StreamingRateResponse, error) {
+	m := new(StreamingRateResponse)
 	if err := x.ClientStream.RecvMsg(m); err != nil {
 		return nil, err
 	}
@@ -80,6 +80,7 @@ func (x *currencySubscribeRatesClient) Recv() (*RateResponse, error) {
 type CurrencyServer interface {
 	GetRate(context.Context, *RateRequest) (*RateResponse, error)
 	SubscribeRates(Currency_SubscribeRatesServer) error
+	mustEmbedUnimplementedCurrencyServer()
 }
 
 // UnimplementedCurrencyServer must be embedded to have forward compatible implementations.
@@ -128,7 +129,7 @@ func _Currency_SubscribeRates_Handler(srv interface{}, stream grpc.ServerStream)
 }
 
 type Currency_SubscribeRatesServer interface {
-	Send(*RateResponse) error
+	Send(*StreamingRateResponse) error
 	Recv() (*RateRequest, error)
 	grpc.ServerStream
 }
@@ -137,7 +138,7 @@ type currencySubscribeRatesServer struct {
 	grpc.ServerStream
 }
 
-func (x *currencySubscribeRatesServer) Send(m *RateResponse) error {
+func (x *currencySubscribeRatesServer) Send(m *StreamingRateResponse) error {
 	return x.ServerStream.SendMsg(m)
 }
 
@@ -169,5 +170,5 @@ var Currency_ServiceDesc = grpc.ServiceDesc{
 			ClientStreams: true,
 		},
 	},
-	Metadata: "proto/currency.proto",
+	Metadata: "currency.proto",
 }
